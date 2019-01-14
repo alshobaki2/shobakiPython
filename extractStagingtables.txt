@@ -1,0 +1,49 @@
+import pyodbc
+import pandas
+import re
+import os
+
+#TableName = 'XXPOS_ADJ_DETAILS'
+
+cnxn = pyodbc.connect("Driver={SQL Server Native Client 11.0};"
+                      "Server=192.168.40.50,17001;"
+                      "Database=UMDW;"
+                      "UID=ETL_USER;"
+                      "PWD=pass@word1;"
+                      )
+cursor = cnxn.cursor()
+
+sql = '''
+SELECT OBJECT_NAME(a.object_id) sp_name,       (a.definition) sp_definition FROM sys.sql_modules a WHERE
+OBJECTPROPERTY(object_id, 'IsProcedure') = 1  
+and OBJECT_NAME(a.object_id) in (select ltrim(rtrim(sp)) from sp_logs where dateid = '20181029' ) 
+'''
+#AND (a.definition) LIKE '%'''
+
+#sql = sql + TableName +'%\'' 
+
+data = pandas.read_sql(sql,cnxn)
+regex_pat = re.compile("/\*.*?\*/",re.DOTALL )
+data["sql"] = data["sp_definition"].str.replace(regex_pat, '',regex=True)
+regex_pat = re.compile("--.*?\n" )
+data["sql"] = data["sql"].str.replace(regex_pat, '',regex=True)
+data["sql"] = data["sql"].str.upper()
+data["sql"] = data["sql"].str.replace('[', '',regex=False)
+data["sql"] = data["sql"].str.replace(']', '',regex=False) 
+#data["sql"] = data["sql"].str.replace('[UMDW_STAGING]', 'UMDW_STAGING',regex=False) 
+#data["sql"] = data["sql"].str.replace('[BACKOFFICE]', 'BACKOFFICE',regex=False) 
+#data["sql"] = data["sql"].str.replace('[', '',regex=False) 
+#data["sql"] = data["sql"].str.replace(']', ' ',regex=False) 
+
+data['index1'] = data.index
+
+#df = data["sql"].str.extractall(r'INSERT\s*INTO\s*(?P<To_table>[^#]\S*)\s*.*?select+(?:.*?\s*)from\s*(?P<From_table>[^#(\s]+)',  re.DOTALL | re.IGNORECASE) 
+#df = data["sql"].str.extractall(r'(?P<Script>INSERT\s*INTO\s*(?P<To_table>[^#]\S*)\s*.*?select+(?:.*?\s*)from\s*(?P<From_table>[^#(\s]+))',  re.DOTALL | re.IGNORECASE) 
+#df = data["sql"].str.extractall(r'(?P<Script>INSERT\s*INTO\s*(?P<To_table>[^#]\S*)\s*.*?select+(?:.*?\s*)from\s*(?P<From_table>[^#(\s]+).{1,600})',  re.DOTALL | re.IGNORECASE) 
+df = data["sql"].str.extractall(r'(?P<UMDW_STAGING>UMDW_STAGING\S*)',  re.DOTALL | re.IGNORECASE) 
+f = df.reset_index()
+
+new_df = pandas.merge(f, data,  how='right', left_on=['level_0'], right_on = ['index1'])
+new_df=new_df.dropna()
+del new_df['sp_definition']
+del new_df['sql']
