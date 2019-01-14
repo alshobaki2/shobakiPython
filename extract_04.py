@@ -37,5 +37,5 @@ df['insertdate'] = str( datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f3')[:-4])
 df['dateid'] = yy+df["Month"]+df["day"]
 
 df.to_csv('C:/Users/aalshobaki/Desktop/deleteme'+filename+'.csv',header=False, index=False, sep='^', encoding='utf-8', columns = 	['start_time','ip1','port1','ip2','port2','ip3','port3','insertdate','SourceFileName','SourceID', 'start_time_int','dateid'])
-#print(str(datetime.now()))
+
 
