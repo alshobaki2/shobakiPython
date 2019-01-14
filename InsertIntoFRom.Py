@@ -60,5 +60,5 @@ print(summary["Script"][650])
 summary[summary['From_table'].str.contains("XXPOS_DELETED_LOAN".upper())] 
 print(summary["Script"][183])
 
-------------------
+#######################------------------
 m=regex.search(r"\s(?:JOIN|FROM|APPLY)[\s/[]+(?P<from_table>[^#(\s]+).*,[\s]*(?P<from_table>[\S]*)?", data["withoutcomments"][0])
