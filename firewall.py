@@ -5,7 +5,6 @@ Type "copyright", "credits" or "license()" for more information.
 >>> import sys
 import re
 
-SyntaxError: multiple statements found while compiling a single statement
 >>> 
 >>> 
 >>> import sys
